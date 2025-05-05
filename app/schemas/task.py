@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from uuid import UUID
 
 class TaskBase(BaseModel):
@@ -16,5 +16,4 @@ class TaskOut(TaskBase):
     done: bool
     user_id: UUID
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)

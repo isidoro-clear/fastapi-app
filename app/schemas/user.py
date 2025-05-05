@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from uuid import UUID
 
 class UserBase(BaseModel):
@@ -12,8 +12,7 @@ class UserCreate(UserBase):
 class UserOut(UserBase):
     id: UUID
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class UserLogin(BaseModel):
     email: str
