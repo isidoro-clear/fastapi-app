@@ -1,0 +1,20 @@
+from pydantic import BaseModel
+from uuid import UUID
+
+class TaskBase(BaseModel):
+    title: str
+    description: str | None = None
+
+class TaskCreate(TaskBase):
+    pass
+
+class TaskCreateInternal(TaskCreate):
+    user_id: UUID
+
+class TaskOut(TaskBase):
+    id: UUID
+    done: bool
+    user_id: UUID
+
+    class Config:
+        orm_mode = True
