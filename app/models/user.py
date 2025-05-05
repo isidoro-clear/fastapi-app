@@ -2,7 +2,7 @@ from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship, Session
 from app.db import Base
 from app.core.security import hash_password, verify_password, create_access_token
-from app.schemas.user import UserCreate
+from app.schemas.user import UserCreate, UserLogin
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
@@ -38,8 +38,8 @@ class User(Base):
         return new_user
     
     @classmethod
-    def signin(cls, db: Session, user_data: UserCreate):
-        user = db.query(cls).filter(cls.email == user_data.email).first()
+    def signin(cls, db: Session, user_data: UserLogin):
+        user = db.query(cls).filter(cls.email == user_data.username).first()
         if not user or not verify_password(user_data.password, user.password):
             raise ValueError("E-mail or password is incorrect.")
         token = create_access_token(data={"sub": user.email})

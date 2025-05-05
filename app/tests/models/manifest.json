@@ -1,5 +1,6 @@
 {
   "files": [
-      "test_task_model.py"
+      "test_task_model.py",
+      "test_user_model.py"
   ]
 }
