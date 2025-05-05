@@ -3,6 +3,7 @@ from sqlalchemy.engine import URL
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from dotenv import load_dotenv
 import os
+import sys
 
 load_dotenv()
 
@@ -19,17 +20,6 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-session = SessionLocal()
-
-Base = declarative_base()
-
-def get_db():
-    db: Session = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 SQLALCHEMY_DATABASE_URL_TEST = URL.create(
   drivername="postgresql",
   username=os.getenv("DB_USER"),
@@ -41,4 +31,22 @@ SQLALCHEMY_DATABASE_URL_TEST = URL.create(
 
 engine_test = create_engine(SQLALCHEMY_DATABASE_URL_TEST)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine_test)
+
+Base = declarative_base()
+
+def get_db():
+    db: Session = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+def get_session():
+    # Check if we're running tests (pytest sets this environment variable)
+    if 'pytest' in sys.modules:
+        return TestingSessionLocal()
+    return SessionLocal()
+
+# Create a global session that will automatically use the correct database
+session = get_session()
 

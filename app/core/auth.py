@@ -7,6 +7,8 @@ from jwt.exceptions import InvalidTokenError
 from app.models.user import User
 from pydantic import BaseModel
 import os
+from sqlalchemy.orm import Session
+from app.db import get_db
 
 ALGORITHM = "HS256"
 
@@ -19,7 +21,7 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: str | None = None
 
-def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -36,7 +38,7 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         raise credentials_exception
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Token inválido")
-    user = User.find_by(email=token_data.username)
+    user = User.find_by(db, email=token_data.username)
     if user is None:
         raise credentials_exception
     return user

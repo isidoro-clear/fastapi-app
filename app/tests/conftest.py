@@ -26,10 +26,14 @@ def pytest_collect_directory(path, parent):
         return ManifestDirectory.from_parent(parent=parent, path=path)
     return None
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="session", autouse=True)
 def test_db_setup():
+    # Drop all tables first to ensure clean state
+    Base.metadata.drop_all(bind=engine_test)
+    # Create all tables
     Base.metadata.create_all(bind=engine_test)
     yield
+    # Clean up after all tests
     Base.metadata.drop_all(bind=engine_test)
 
 @pytest.fixture(scope="function")
@@ -55,3 +59,4 @@ def client(db_session):
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as c:
         yield c
+    # app.dependency_overrides.clear()

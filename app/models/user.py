@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String
-from sqlalchemy.orm import relationship
-from app.db import Base, session
+from sqlalchemy.orm import relationship, Session
+from app.db import Base
 from app.core.security import hash_password, verify_password, create_access_token
 from app.schemas.user import UserCreate
 from sqlalchemy.dialects.postgresql import UUID
@@ -18,12 +18,12 @@ class User(Base):
     tasks = relationship("Task", back_populates="user")
 
     @classmethod
-    def find_by(cls, **kwargs):
-        return session.query(cls).filter_by(**kwargs).first()
+    def find_by(cls, db: Session, **kwargs):
+        return db.query(cls).filter_by(**kwargs).first()
 
     @classmethod
-    def create(cls, user_data: UserCreate):
-        if session.query(cls).filter(cls.email == user_data.email).first():
+    def create(cls, db: Session, user_data: UserCreate):
+        if db.query(cls).filter(cls.email == user_data.email).first():
             raise ValueError("E-mail já registrado.")
 
         new_user = cls(
@@ -32,14 +32,14 @@ class User(Base):
             email=user_data.email,
             password=hash_password(user_data.password)
         )
-        session.add(new_user)
-        session.commit()
-        session.refresh(new_user)
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
         return new_user
     
     @classmethod
-    def signin(cls, user_data: UserCreate):
-        user = session.query(cls).filter(cls.email == user_data.username).first()
+    def signin(cls, db: Session, user_data: UserCreate):
+        user = db.query(cls).filter(cls.email == user_data.email).first()
         if not user or not verify_password(user_data.password, user.password):
             raise ValueError("E-mail or password is incorrect.")
         token = create_access_token(data={"sub": user.email})
